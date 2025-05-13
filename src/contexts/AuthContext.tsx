@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 type User = {
   id: string;
@@ -70,38 +71,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      
-      // In a real app, you would send a request to your API
-      // const response = await axios.post('/api/auth/login', { email, password });
-      
-      // For demo purposes, we'll simulate a successful login with role-based users
-      let demoUser: User;
-      
-      if (email.includes('admin')) {
-        demoUser = { id: '1', name: 'Admin User', email, role: 'admin' };
-      } else if (email.includes('tech')) {
-        demoUser = { id: '2', name: 'Technician User', email, role: 'technician' };
-      } else {
-        demoUser = { id: '3', name: 'Viewer User', email, role: 'viewer' };
-      }
-      
-      // Simulate token storage
-      localStorage.setItem('auth_token', 'demo_token_' + Math.random());
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      
-      setUser(demoUser);
-      setIsAuthenticated(true);
-      toast.success('Login successful');
-    } catch (error) {
-      console.error('Login failed:', error);
-      toast.error('Login failed. Please check your credentials.');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    setIsLoading(true);
+
+    const response = await axios.post('http://localhost:5000/login', {
+      email,
+      password,
+    });
+
+    const user = response.data.user;
+
+    localStorage.setItem('auth_token', 'dummy_token'); // tu pourras gérer un vrai token plus tard
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+    setIsAuthenticated(true);
+    toast.success('Login successful');
+  } catch (error: any) {
+    console.error('Login failed:', error);
+    toast.error(error.response?.data?.error || 'Login failed');
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+};
+     
 
   const register = async (name: string, email: string, password: string) => {
     try {

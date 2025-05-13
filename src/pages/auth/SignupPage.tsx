@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -52,16 +51,33 @@ export const SignupPage = () => {
     },
   });
 
-  const onSubmit = async (data: SignupFormValues) => {
-    try {
-      await register(data.name, data.email, data.password);
-      toast.success('Account created successfully!');
-      navigate('/login');
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Failed to create account. Please try again.');
+  const onSubmit = async (data) => {
+  const { confirmPassword, ...payload } = data;
+
+  try {
+    const response = await fetch("http://localhost:5000/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Registration failed");
     }
-  };
+
+    alert("Inscription réussie !");
+  } catch (error) {
+    alert("Erreur : " + error.message);
+  }
+};
+
+
+ 
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

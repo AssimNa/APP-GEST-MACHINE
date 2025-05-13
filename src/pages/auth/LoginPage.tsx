@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Wrench, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { createContext, useContext, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -37,6 +38,7 @@ export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   
+  
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -44,6 +46,7 @@ export const LoginPage = () => {
       password: '',
     },
   });
+  
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
@@ -54,6 +57,7 @@ export const LoginPage = () => {
       // Error is already handled in the auth context
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
