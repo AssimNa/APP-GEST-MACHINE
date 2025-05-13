@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
+from routes.machine_routes import machine_bp
 # import bcrypt
 
 app = Flask(__name__)
@@ -80,8 +81,8 @@ def login():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
-
-
+#machines
+app.register_blueprint(machine_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)
