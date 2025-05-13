@@ -74,45 +74,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   try {
     setIsLoading(true);
 
-    const response = await axios.post('http://localhost:5000/login', {
-      email,
-      password,
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
 
-    const user = response.data.user;
+    const data = await response.json();
 
-    localStorage.setItem('auth_token', 'dummy_token'); // tu pourras gérer un vrai token plus tard
+    if (!response.ok) throw new Error(data.error || 'Login failed');
+
+    const user = data.user;
+
+    localStorage.setItem('auth_token', 'demo_token_' + Math.random());
     localStorage.setItem('user', JSON.stringify(user));
+
     setUser(user);
     setIsAuthenticated(true);
     toast.success('Login successful');
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login failed:', error);
-    toast.error(error.response?.data?.error || 'Login failed');
+    toast.error('Login failed. Please check your credentials.');
     throw error;
   } finally {
     setIsLoading(false);
   }
 };
+
+
      
 
   const register = async (name: string, email: string, password: string) => {
     try {
       setIsLoading(true);
-      
-      // In a real app, you would send a request to your API
-      // const response = await axios.post('/api/auth/register', { name, email, password });
-      
-      // For demo purposes, we'll simulate a successful registration
-      // In a real application, we'd wait for backend confirmation
-      
-      // Simulating some delay for the registration process
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
       toast.success('Registration successful! You can now log in.');
-      
-      // We don't auto login the user after registration in this flow
-      // They need to log in explicitly with their new credentials
     } catch (error) {
       console.error('Registration failed:', error);
       toast.error('Registration failed. Please try again.');

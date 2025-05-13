@@ -14,6 +14,7 @@ db = mysql.connector.connect(
     database="app_gestion"      # Le nom de ta base
 )
 cursor = db.cursor()
+
 #signup
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -21,27 +22,26 @@ def signup():
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
+    role = "user"  # Valeur par défaut
 
     if not name or not email or not password:
         return jsonify({"error": "All fields are required"}), 400
 
     try:
-        # Vérifie si l'utilisateur existe déjà
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         existing_user = cursor.fetchone()
         if existing_user:
             return jsonify({"error": "Email already in use"}), 409
 
-        # Enregistrement sans hash
-        sql = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
-        values = (name, email, password)
-        cursor.execute(sql, values)
+        cursor.execute("INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
+                       (name, email, password, role))
         db.commit()
 
         return jsonify({"message": "User registered and saved in database"}), 201
 
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
+
 
 
 
@@ -60,21 +60,22 @@ def login():
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
 
-        if user:
-            stored_password = user[3]  # Le mot de passe en clair depuis la BDD
-            if password == stored_password:
-                return jsonify({
-                    "message": "Login successful",
-                    "user": {
-                        "id": user[0],
-                        "name": user[1],
-                        "email": user[2]
-                    }
-                }), 200
-            else:
-                return jsonify({"error": "Invalid email or password"}), 401
+        if user and user[3] == password:  # Index 3 = password
+            return jsonify({
+                "message": "Login successful",
+                "user": {
+                    "id": user[0],
+                    "name": user[1],
+                    "email": user[2],
+                    "role": user[4]  # 👈 rôle retourné
+                }
+            }), 200
         else:
             return jsonify({"error": "Invalid email or password"}), 401
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+
 
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
