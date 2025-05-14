@@ -69,18 +69,35 @@ const AddMachinePage = () => {
     defaultValues,
   });
 
-  const onSubmit = (data: MachineFormValues) => {
-    // Here you would typically send the data to your API
-    console.log('Form submitted:', data);
-    
-    // Show success message
+  const onSubmit = async (data: MachineFormValues) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/machines', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        machine_name: data.name,
+        Nmachine: data.nIdentification,
+        Description: data.designation,
+        Nserie: parseFloat(data.nSerie || '0'),
+        constructeur: data.constructeur,
+        poids: parseFloat(data.poids || '0'),
+        Dimension: parseFloat(data.dimensions || '0'),
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to add machine');
+
     toast.success('Machine added successfully', {
       description: `${data.name} has been added to your machines.`,
     });
-    
-    // Navigate back to machines list
     navigate('/machines');
-  };
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to add machine');
+  }
+};
 
   return (
     <div className="space-y-6">
