@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Search,
   Filter,
@@ -143,6 +143,8 @@ const recentActivities = [
     timestamp: '2025-05-08 11:45',
   },
 ];
+
+
 
 export const MachinesPage = () => {
   const navigate = useNavigate();
