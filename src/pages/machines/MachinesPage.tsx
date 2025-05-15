@@ -50,99 +50,77 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 
-// Mock data avec les nouvelles propriétés
-const machines = [
-  {
-    id: 1,
-    Description: 'Machine de découpe CNC haute précision',
-    Nserie: 'CNC-2023-001',
-    constructeur: 'Haas Automation',
-    Nmachine: 'VF-2',
-    poids: '1200 kg',
-    Dimension: '2.5m x 1.8m x 2.1m',
-    status: 'operational',
-    health: 92,
-  },
-  {
-    id: 2,
-    Description: 'Ligne d\'assemblage automatique',
-    Nserie: 'AL-2024-015',
-    constructeur: 'Custom Assembly Tech',
-    Nmachine: 'AL-230',
-    poids: '2500 kg',
-    Dimension: '5m x 1.5m x 1.8m',
-    status: 'maintenance',
-    health: 68,
-  },
-  {
-    id: 3,
-    Description: 'Bras robotique industriel 6 axes',
-    Nserie: 'RB-2023-042',
-    constructeur: 'ABB Robotics',
-    Nmachine: 'IRB 6700',
-    poids: '800 kg',
-    Dimension: '1.5m x 1m x 2m',
-    status: 'operational',
-    health: 88,
-  },
-  {
-    id: 4,
-    Description: 'Unité de conditionnement automatique',
-    Nserie: 'PK-2024-008',
-    constructeur: 'PackTech Systems',
-    Nmachine: 'PT-2000',
-    poids: '1800 kg',
-    Dimension: '3m x 2m x 2.2m',
-    status: 'operational',
-    health: 95,
-  },
-  {
-    id: 5,
-    Description: 'Mouleur par injection plastique',
-    Nserie: 'IM-2022-023',
-    constructeur: 'Arburg',
-    Nmachine: '570A',
-    poids: '3500 kg',
-    Dimension: '4m x 2.5m x 2.5m',
-    status: 'warning',
-    health: 76,
-  },
-  {
-    id: 6,
-    Description: 'Cabine de peinture industrielle',
-    Nserie: 'PB-2023-011',
-    constructeur: 'SprayTech',
-    Nmachine: 'X3',
-    poids: '2200 kg',
-    Dimension: '3.5m x 3m x 2.8m',
-    status: 'offline',
-    health: 0,
-  },
-];
 
-const recentActivities = [
-  {
-    id: 1,
-    machine: 'VF-2',
-    type: 'Maintenance',
-    description: 'Routine inspection completed',
-    timestamp: '2025-05-07 14:30',
-  },
-  {
-    id: 2,
-    machine: 'AL-230',
-    type: 'Issue',
-    description: 'Belt tensioner adjustment needed',
-    timestamp: '2025-05-08 09:15',
-  },
-  {
-    id: 3,
-    machine: 'IRB 6700',
-    type: 'Update',
-    description: 'Software update applied',
-    timestamp: '2025-05-08 11:45',
-  },
-];
+
+// Mock data avec les nouvelles propriétés
+// const machines = [
+//   {
+//     id: 1,
+//     Description: 'Machine de découpe CNC haute précision',
+//     Nserie: 'CNC-2023-001',
+//     constructeur: 'Haas Automation',
+//     Nmachine: 'VF-2',
+//     poids: '1200 kg',
+//     Dimension: '2.5m x 1.8m x 2.1m',
+//     status: 'operational',
+//     health: 92,
+//   },
+//   {
+//     id: 2,
+//     Description: 'Ligne d\'assemblage automatique',
+//     Nserie: 'AL-2024-015',
+//     constructeur: 'Custom Assembly Tech',
+//     Nmachine: 'AL-230',
+//     poids: '2500 kg',
+//     Dimension: '5m x 1.5m x 1.8m',
+//     status: 'maintenance',
+//     health: 68,
+//   },
+//   {
+//     id: 3,
+//     Description: 'Bras robotique industriel 6 axes',
+//     Nserie: 'RB-2023-042',
+//     constructeur: 'ABB Robotics',
+//     Nmachine: 'IRB 6700',
+//     poids: '800 kg',
+//     Dimension: '1.5m x 1m x 2m',
+//     status: 'operational',
+//     health: 88,
+//   },
+//   {
+//     id: 4,
+//     Description: 'Unité de conditionnement automatique',
+//     Nserie: 'PK-2024-008',
+//     constructeur: 'PackTech Systems',
+//     Nmachine: 'PT-2000',
+//     poids: '1800 kg',
+//     Dimension: '3m x 2m x 2.2m',
+//     status: 'operational',
+//     health: 95,
+//   },
+//   {
+//     id: 5,
+//     Description: 'Mouleur par injection plastique',
+//     Nserie: 'IM-2022-023',
+//     constructeur: 'Arburg',
+//     Nmachine: '570A',
+//     poids: '3500 kg',
+//     Dimension: '4m x 2.5m x 2.5m',
+//     status: 'warning',
+//     health: 76,
+//   },
+//   {
+//     id: 6,
+//     Description: 'Cabine de peinture industrielle',
+//     Nserie: 'PB-2023-011',
+//     constructeur: 'SprayTech',
+//     Nmachine: 'X3',
+//     poids: '2200 kg',
+//     Dimension: '3.5m x 3m x 2.8m',
+//     status: 'offline',
+//     health: 0,
+//   },
+// ];
 
 
 
@@ -152,6 +130,18 @@ export const MachinesPage = () => {
   const [selectedTab, setSelectedTab] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [machineToDelete, setMachineToDelete] = useState<number | null>(null);
+  const [machines, setMachines] = useState([]);
+
+  useEffect(() => {
+  fetch('http://127.0.0.1:5000/api/machines')
+    .then(res => res.json())
+    .then(data => {
+      console.log("✅ Machines chargées depuis l'API:", data);
+      setMachines(data); // Met à jour l'état
+    })
+    .catch(err => console.error("❌ Erreur fetch machines:", err));
+}, []);
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -233,11 +223,23 @@ export const MachinesPage = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (machineToDelete) {
-      toast.success("Machine deleted successfully");
-      setDeleteDialogOpen(false);
-      setMachineToDelete(null);
+      try {
+        const response = await fetch(`http://localhost:5000/api/machines/${machineToDelete}`, {
+          method: 'DELETE',
+        });
+  
+        if (!response.ok) throw new Error('Delete failed');
+  
+        setMachines(machines.filter(machine => machine.id !== machineToDelete));
+        toast.success('Machine deleted successfully');
+        setDeleteDialogOpen(false);
+        setMachineToDelete(null);
+      } catch (error) {
+        console.error(error);
+        toast.error('Failed to delete machine');
+      }
     }
   };
 
@@ -313,12 +315,17 @@ export const MachinesPage = () => {
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {filteredMachines.map((machine) => (
               <Card key={machine.id} className="overflow-hidden hover:bg-accent/50 transition-colors cursor-pointer"
-                onClick={() => navigate(`/machines/${machine.id}`)}>
+                onClick={() => navigate(`/machines/${machine.id}/edit`)}>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="flex items-center gap-2">
-                        {machine.Nmachine}
+                        {machine.machine_name}
+                        {machine.status === 'warning' && (
+                          <div title="Machine requires attention">
+                            <AlertCircle className="h-4 w-4 text-yellow-500" />
+                          </div>
+                        )}
                       </CardTitle>
                       <CardDescription>{machine.constructeur}</CardDescription>
                     </div>

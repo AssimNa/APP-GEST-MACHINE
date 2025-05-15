@@ -15,7 +15,7 @@ const MachineDetailPage = () => {
     name: `Machine ${id}`,
     nIdentification: `ID-${id}`,
     designation: 'Production Equipment',
-    nSerie: `SN-${id}000`,
+    Nserie: `SN-${id}000`,
     constructeur: 'Industrial Equipment Co.',
     nFicheMachine: `FM-${id}`,
     poids: '1200 kg',
@@ -64,7 +64,7 @@ const MachineDetailPage = () => {
                 <dt className="text-sm font-medium text-muted-foreground">
                   <Tag className="inline h-4 w-4 mr-1" /> N° Serie
                 </dt>
-                <dd className="text-sm font-semibold">{machine.nSerie}</dd>
+                <dd className="text-sm font-semibold">{machine.Nserie}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">

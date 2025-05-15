@@ -35,16 +35,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+
+
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Machine name is required' }),
   nIdentification: z.string().min(1, { message: 'N° Identification is required' }),
   designation: z.string().min(1, { message: 'Designation is required' }),
-  nSerie: z.string().optional(),
+  Nserie: z.string().optional(),
   constructeur: z.string().optional(),
   nFicheMachine: z.string().optional(),
   poids: z.string().optional(),
   dimensions: z.string().optional(),
   description: z.string().optional(),
+  status: z.enum(['operational', 'inmaintenance', 'warning', 'offline']),
+  health: z.string().refine((val) => !isNaN(Number(val)), {message: 'Health must be a number'}),
 });
 
 type MachineFormValues = z.infer<typeof formSchema>;
@@ -53,16 +57,23 @@ const defaultValues: Partial<MachineFormValues> = {
   name: '',
   nIdentification: '',
   designation: '',
-  nSerie: '',
+  Nserie: '',
   constructeur: '',
   nFicheMachine: '',
   poids: '',
   dimensions: '',
   description: '',
+  status: 'operational',
+  health: '',
 };
 
 const AddMachinePage = () => {
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   
   const form = useForm<MachineFormValues>({
     resolver: zodResolver(formSchema),
@@ -80,10 +91,12 @@ const AddMachinePage = () => {
         machine_name: data.name,
         Nmachine: data.nIdentification,
         Description: data.designation,
-        Nserie: parseFloat(data.nSerie || '0'),
+        Nserie: parseFloat(data.Nserie || '0'),
         constructeur: data.constructeur,
         poids: parseFloat(data.poids || '0'),
         Dimension: parseFloat(data.dimensions || '0'),
+        status: data.status,       
+        health: Number(data.health) 
       }),
     });
 
@@ -180,14 +193,14 @@ const AddMachinePage = () => {
 
                 <FormField
                   control={form.control}
-                  name="nSerie"
+                  name="Nserie"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>N° Serie</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Tag className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-10" placeholder="SN-12345" {...field} />
+                          <Input className="pl-10" placeholder="12345" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -262,6 +275,53 @@ const AddMachinePage = () => {
                     </FormItem>
                   )}
                 />
+                
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <select className="pl-10 w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" {...field}>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="operational">Operational</option>
+                            <option value="inmaintenance">In Maintenance</option>
+                            <option value="warning">Warning</option>
+                            <option value="offline">Offline</option>
+                          </select>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="health"
+                  render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Health (%)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          placeholder="Ex: 85"
+                          className="pl-10"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               </div>
               
               <FormField
@@ -281,6 +341,7 @@ const AddMachinePage = () => {
                   </FormItem>
                 )}
               />
+            
               
               <div className="flex justify-end space-x-4">
                 <Button variant="outline" type="button" onClick={() => navigate('/machines')}>
