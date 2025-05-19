@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClipboardCheck, ArrowLeft, Calendar } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -39,17 +38,15 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
 const formSchema = z.object({
-  title: z.string().min(3, { message: "Task title is required" }),
-  machineId: z.string().min(1, { message: "Please select a machine" }),
-  priority: z.string().min(1, { message: "Please select a priority" }),
-  taskType: z.string().min(1, { message: "Please select a task type" }),
-  assignedTo: z.string().min(1, { message: "Please assign to someone" }),
-  scheduledDate: z.date({
-    required_error: "Please select a date",
-  }),
-  estimatedHours: z.coerce.number().positive(),
-  description: z.string().optional(),
-  partsNeeded: z.string().optional(),
+  Task_Title: z.string().min(1, "Title is required"),
+  Machine_ID: z.string().min(1, "Machine selection is required"),
+  Priority: z.string().min(1, "Priority selection is required"),
+  Task_Type: z.string().min(1, "Task type is required"),
+  Assigned_To: z.string().min(1, "Assignee is required"),
+  Estimate_Hours: z.number().min(0.5, "Minimum 0.5 hours").max(24, "Maximum 24 hours"),
+  Description: z.string().optional(),
+  Parts_Needed: z.string().optional(),
+  Scheduled_Date: z.string().min(1, "Scheduled date is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,23 +56,37 @@ const CreateTaskPage = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      machineId: '',
-      priority: '',
-      taskType: '',
-      assignedTo: '',
-      estimatedHours: 1,
-      description: '',
-      partsNeeded: '',
+      Task_Title: '',
+      Machine_ID: '',
+      Priority: '',
+      Task_Type: '',
+      Assigned_To: '',
+      Estimate_Hours: 1,
+      Description: '',
+      Parts_Needed: '',
+      Scheduled_Date: new Date().toISOString().split('T')[0], // Default to today
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    toast.success("Maintenance task created", {
-      description: `Task assigned to ${values.assignedTo}`,
-    });
-    setTimeout(() => navigate('/maintenance/tasks'), 1500);
+  const onSubmit = async (values: FormValues) => {
+    try {
+      // Add Status with default value when creating
+      const taskData = {
+        ...values,
+        Status: 'Pending', // Default status for new tasks
+      };
+      
+      await createTask(taskData); // Call your API function to create the task
+      
+      toast.success("Maintenance task created", {
+        description: `Task assigned to ${values.Assigned_To}`,
+      });
+      setTimeout(() => navigate('/maintenance/tasks'), 1500);
+    } catch (error) {
+      toast.error("Failed to create task", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    }
   };
 
   // Mock data for selects
@@ -111,226 +122,225 @@ const CreateTaskPage = () => {
             Enter the information for the new maintenance task
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Task Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Quarterly Maintenance" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+<CardContent>
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="Task_Title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Task Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Quarterly Maintenance" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                  control={form.control}
-                  name="machineId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Machine</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Machine" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {machines.map(machine => (
-                            <SelectItem key={machine.id} value={machine.id}>{machine.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <FormField
+          control={form.control}
+          name="Machine_ID"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Machine</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Machine" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {machines.map(machine => (
+                    <SelectItem key={machine.id} value={machine.id}>{machine.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                  control={form.control}
-                  name="taskType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Task Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="routine">Routine Maintenance</SelectItem>
-                          <SelectItem value="repair">Repair</SelectItem>
-                          <SelectItem value="inspection">Inspection</SelectItem>
-                          <SelectItem value="upgrade">Upgrade</SelectItem>
-                          <SelectItem value="emergency">Emergency</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <FormField
+          control={form.control}
+          name="Task_Type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Task Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Routine">Routine Maintenance</SelectItem>
+                  <SelectItem value="Repair">Repair</SelectItem>
+                  <SelectItem value="Inspection">Inspection</SelectItem>
+                  <SelectItem value="Upgrade">Upgrade</SelectItem>
+                  <SelectItem value="Emergency">Emergency</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Priority" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <FormField
+          control={form.control}
+          name="Priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Priority</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Priority" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                  control={form.control}
-                  name="assignedTo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assigned To</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Technician" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {technicians.map(tech => (
-                            <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <FormField
+          control={form.control}
+          name="Assigned_To"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Assigned To</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Technician" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {technicians.map(tech => (
+                    <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-                <FormField
-                  control={form.control}
-                  name="scheduledDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Scheduled Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <FormField
+          control={form.control}
+          name="Scheduled_Date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Scheduled Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
 
-                <FormField
-                  control={form.control}
-                  name="estimatedHours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estimated Hours</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" step="0.5" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Detailed description of the task"
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <FormField
+          control={form.control}
+          name="Estimate_Hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Estimated Hours</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min="0.5" 
+                  max="24" 
+                  step="0.5" 
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="Description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Description</FormLabel>
+            <FormControl>
+              <Textarea 
+                placeholder="Detailed description of the task"
+                className="min-h-[100px]"
+                {...field}
               />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-              <FormField
-                control={form.control}
-                name="partsNeeded"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parts Needed (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="List any parts that will be needed for this task"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Enter one part per line or part numbers separated by commas</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+      <FormField
+        control={form.control}
+        name="Parts_Needed"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Parts Needed (Optional)</FormLabel>
+            <FormControl>
+              <Textarea 
+                placeholder="List any parts that will be needed for this task"
+                {...field}
               />
+            </FormControl>
+            <FormDescription>Enter one part per line or part numbers separated by commas</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-              <div className="flex justify-end gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => navigate('/maintenance/tasks')}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  <ClipboardCheck className="mr-2 h-4 w-4" />
-                  Create Task
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
+      <div className="flex justify-end gap-3">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => navigate('/maintenance/tasks')}
+        >
+          Cancel
+        </Button>
+        <Button type="submit">
+          <ClipboardCheck className="mr-2 h-4 w-4" />
+          Create Task
+        </Button>
+      </div>
+    </form>
+  </Form>
+</CardContent>
       </Card>
     </div>
   );

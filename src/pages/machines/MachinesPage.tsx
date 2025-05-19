@@ -297,7 +297,7 @@ export const MachinesPage = () => {
               {machines.filter(m => m.status === 'maintenance' || m.status === 'warning' || m.status === 'offline').length}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {machines.filter(m => m.status === 'offline').length} offline, {machines.filter(m => m.status === 'maintenance').length} in maintenance
+              {machines.filter(m => m.status === 'offline').length} offline, {machines.filter(m => m.status === 'inmaintenance').length} in maintenance
             </p>
           </CardContent>
         </Card>
@@ -307,7 +307,7 @@ export const MachinesPage = () => {
         <TabsList className="w-full justify-start max-w-md">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="operational">Operational</TabsTrigger>
-          <TabsTrigger value="maintenance">In Maintenance</TabsTrigger>
+          <TabsTrigger value="inmaintenance">In Maintenance</TabsTrigger>
           <TabsTrigger value="warning">Warning</TabsTrigger>
           <TabsTrigger value="offline">Offline</TabsTrigger>
         </TabsList>
@@ -360,7 +360,7 @@ export const MachinesPage = () => {
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">Dimensions</div>
-                        <div className="text-sm font-medium">{machine.Dimension}</div>
+                        <div className="text-sm font-medium">{machine.dimension}</div>
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">Description</div>

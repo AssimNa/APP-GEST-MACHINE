@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // setUser(response.data);
       
       // For the sake of demo, we'll just simulate a successful auth check
-      const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
       if (storedUser) {
         setUser(JSON.parse(storedUser));
         setIsAuthenticated(true);
@@ -100,9 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }
 };
+ 
 
-
-     
 
   const register = async (name: string, email: string, password: string) => {
     try {

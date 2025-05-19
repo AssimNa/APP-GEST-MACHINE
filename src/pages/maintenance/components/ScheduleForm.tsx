@@ -49,7 +49,7 @@ const ScheduleForm = () => {
   const onSubmit = (values: ScheduleFormValues) => {
     console.log(values);
     toast.success("Maintenance schedule created", {
-      description: `Schedule for ${values.name} has been created`,
+    description: `Schedule for ${values.name} has been created`,
     });
     navigate('/maintenance/schedules');
   };
